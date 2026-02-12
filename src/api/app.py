@@ -19,7 +19,7 @@ class Invoice(BaseModel):
 
 @app.post("/predict")
 def predict(invoice: Invoice):
-data = invoice.dict()
+    data = invoice.dict()
 
 df = pd.DataFrame([[
     data["invoice_amount"],
