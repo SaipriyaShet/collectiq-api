@@ -17,37 +17,37 @@ class Invoice(BaseModel):
     industry_category: float
     reliability_score: float
 
+
 @app.post("/predict")
 def predict(invoice: Invoice):
 
-    data = invoice.dict()   # ✅ correct
+    # Convert request to dictionary
+    data = invoice.dict()
 
-    df = pd.DataFrame([[
+    # Create feature list in correct order
+    features = [[
         data["invoice_amount"],
         data["avg_delay_days"],
         data["num_past_invoices"],
         data["invoice_gap_days"],
         data["industry_category"],
         data["reliability_score"]
-    ]], columns=[
-        "invoice_amount",
-        "avg_delay_days",
-        "num_past_invoices",
-        "invoice_gap_days",
-        "industry_category",
-        "reliability_score"
-    ])
+    ]]
 
-    prediction = model.predict(df)
-    probability = float(prediction[0])
+    # Get probability
+    probability = model.predict_proba(features)[0][1]
 
+    # Decision logic
     if probability > 0.7:
-        tone = "Firm reminder"
+        reminder = "Send early reminder"
+        tone = "Firm"
     else:
-        tone = "Friendly reminder"
+        reminder = "Normal reminder"
+        tone = "Friendly"
 
     return {
-        "payment_risk_probability": probability,
-        "recommended_tone": tone
+        "late_payment_probability": float(probability),
+        "recommended_action": reminder,
+        "tone": tone
     }
-
+       
