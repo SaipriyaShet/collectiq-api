@@ -2,7 +2,6 @@ from fastapi import FastAPI
 import joblib
 import pandas as pd
 from pydantic import BaseModel
-import mlflow.pyfunc
 import joblib
 
 app = FastAPI()
