@@ -3,12 +3,12 @@ import joblib
 import pandas as pd
 from pydantic import BaseModel
 import mlflow.pyfunc
+import joblib
 
 app = FastAPI()
 
-model = mlflow.pyfunc.load_model(
-    "models:/CollectIQ_Model@production"
-)
+model = joblib.load("models/xgboost_model.pkl")
+
 
 class Invoice(BaseModel):
     invoice_amount: float
@@ -21,7 +21,8 @@ class Invoice(BaseModel):
 @app.post("/predict")
 def predict(data: Invoice):
     df = pd.DataFrame([data.dict()])
-    probability = model.predict(df)[0]
+    prediction = model.predict(df)[0]
+
 
     if probability > 0.7:
         reminder_day = 2
