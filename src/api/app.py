@@ -75,6 +75,30 @@ def predict(invoice: Invoice):
         "tone": tone,
         "model_version": "v1.0"
     }
+@app.get("/stats")
+def get_stats():
+
+    db = SessionLocal()
+
+    predictions = db.query(Prediction).all()
+
+    total_predictions = len(predictions)
+
+    if total_predictions == 0:
+        db.close()
+        return {"message": "No predictions yet"}
+
+    avg_probability = sum(p.probability for p in predictions) / total_predictions
+
+    high_risk_count = len([p for p in predictions if p.probability > 0.7])
+
+    db.close()
+
+    return {
+        "total_predictions": total_predictions,
+        "average_risk": round(avg_probability, 3),
+        "high_risk_predictions": high_risk_count
+    }
 
 @app.get("/health")
 def health_check():
