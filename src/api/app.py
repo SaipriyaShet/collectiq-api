@@ -12,8 +12,8 @@ app = FastAPI()
 model = joblib.load("models/xgboost_model.pkl")
 model_v1 = joblib.load("models/xgboost_model.pkl")
 # later you can add:
-# model_v2 = joblib.load("models/lightgbm_model.pkl")
-
+#model_v2 = joblib.load("models/lightgbm_model.pkl")
+model_v2 = joblib.load("models/xgboost_model_v2.pkl")
 
 class Invoice(BaseModel):
     invoice_amount: float
@@ -28,8 +28,8 @@ class Invoice(BaseModel):
 def predict(invoice: Invoice, model_version: str = "v1"):
     data = invoice.dict()
 
-    if model_version == "v1":
-        model = model_v1
+    if model_version == "v2":
+        model = model_v2
     else:
         model = model_v1  # fallback (until v2 added)
 
