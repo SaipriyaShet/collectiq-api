@@ -18,20 +18,20 @@ class Invoice(BaseModel):
     reliability_score: float
 
 @app.post("/predict")
-def predict(data: Invoice):
-    df = pd.DataFrame([data.dict()])
-    prediction = model.predict(df)[0]
+def data = invoice.dict()
 
-
-    if probability > 0.7:
-        reminder_day = 2
-        tone = "Firm"
-    else:
-        reminder_day = 5
-        tone = "Friendly"
-
-    return {
-        "late_payment_probability": float(probability),
-        "recommended_reminder_day": reminder_day,
-        "tone": tone
-    }
+df = pd.DataFrame([[
+    data["invoice_amount"],
+    data["avg_delay_days"],
+    data["num_past_invoices"],
+    data["invoice_gap_days"],
+    data["industry_category"],
+    data["reliability_score"]
+]], columns=[
+    "invoice_amount",
+    "avg_delay_days",
+    "num_past_invoices",
+    "invoice_gap_days",
+    "industry_category",
+    "reliability_score"
+])
