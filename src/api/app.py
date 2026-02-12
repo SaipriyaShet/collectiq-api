@@ -10,6 +10,9 @@ logging.basicConfig(level=logging.INFO)
 app = FastAPI()
 
 model = joblib.load("models/xgboost_model.pkl")
+model_v1 = joblib.load("models/xgboost_model.pkl")
+# later you can add:
+# model_v2 = joblib.load("models/lightgbm_model.pkl")
 
 
 class Invoice(BaseModel):
@@ -22,16 +25,14 @@ class Invoice(BaseModel):
 
 
 @app.post("/predict")
-def predict(invoice: Invoice):
-
-    # Convert request to dictionary
+def predict(invoice: Invoice, model_version: str = "v1"):
     data = invoice.dict()
-    
-    
-    # 🔹 Log incoming request
-    logging.info(f"Prediction requested: {data}")
 
-    # Create feature list in correct order
+    if model_version == "v1":
+        model = model_v1
+    else:
+        model = model_v1  # fallback (until v2 added)
+
     features = [[
         data["invoice_amount"],
         data["avg_delay_days"],
@@ -41,40 +42,19 @@ def predict(invoice: Invoice):
         data["reliability_score"]
     ]]
 
-    # Get probability
     probability = model.predict_proba(features)[0][1]
-    
-    # 🔹 Log model output
-    logging.info(f"Probability: {probability}")
 
-    # Decision logic
-    if probability > 0.7:
-        reminder = "Send early reminder"
-        tone = "Firm"
-    else:
-        reminder = "Normal reminder"
-        tone = "Friendly"
-     # 🔥 ADD DATABASE CODE HERE (BEFORE RETURN)
-
-    db = SessionLocal()
-
-    new_prediction = Prediction(
-        invoice_amount=data["invoice_amount"],
-        probability=float(probability),
-        tone=tone,
-        model_version="v1.0"
-    )
-
-    db.add(new_prediction)
-    db.commit()
-    db.close()
+    tone = "Friendly" if probability < 0.3 else "Strict"
 
     return {
         "late_payment_probability": float(probability),
-        "recommended_action": reminder,
+        "recommended_action": "Normal reminder" if probability < 0.3 else "Escalate",
         "tone": tone,
-        "model_version": "v1.0"
+        "model_version": model_version
     }
+
+    
+    
 @app.get("/stats")
 def get_stats():
 
@@ -99,6 +79,17 @@ def get_stats():
         "average_risk": round(avg_probability, 3),
         "high_risk_predictions": high_risk_count
     }
+
+@app.get("/feature-importance")
+def feature_importance():
+    try:
+        importances = model.get_booster().get_score(importance_type="weight")
+
+        return {
+            "feature_importance": importances
+        }
+    except:
+        return {"error": "Feature importance not available"}
 
 @app.get("/health")
 def health_check():
