@@ -48,6 +48,11 @@ def predict(invoice: Invoice):
     return {
         "late_payment_probability": float(probability),
         "recommended_action": reminder,
-        "tone": tone
+        "tone": tone,
+        "model_version": "v1.0"
     }
-       
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "model_loaded": True}
+      
