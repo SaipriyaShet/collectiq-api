@@ -1,4 +1,4 @@
-1. Project Title
+![image](Streamlit Dashboard.png)
 
 Real-Time AI-Based Payment Risk Prediction & Smart Reminder System with MLOps
 
