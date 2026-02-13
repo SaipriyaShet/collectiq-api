@@ -192,3 +192,54 @@ st.markdown("""
 
 st.markdown("---")
 st.caption("CollectIQ © 2026 | AI Risk Intelligence | Built by Saipriya Shet")
+
+# ==============================
+# FEATURE IMPORTANCE SECTION
+# ==============================
+
+st.divider()
+st.header("📊 Model Feature Importance")
+
+try:
+    fi_response = requests.get(f"{API_URL}/feature-importance", timeout=10)
+
+    if fi_response.status_code == 200:
+        fi_data = fi_response.json()
+
+        if "feature_importance" in fi_data:
+
+            importance_dict = fi_data["feature_importance"]
+
+            if importance_dict:
+
+                features = list(importance_dict.keys())
+                scores = list(importance_dict.values())
+
+                fig_importance = go.Figure(
+                    go.Bar(
+                        x=scores,
+                        y=features,
+                        orientation='h'
+                    )
+                )
+
+                fig_importance.update_layout(
+                    title="Feature Importance (XGBoost)",
+                    xaxis_title="Importance Score",
+                    yaxis_title="Features",
+                    height=400
+                )
+
+                st.plotly_chart(fig_importance, width="stretch")
+
+            else:
+                st.info("No feature importance available.")
+
+        else:
+            st.warning("Feature importance not returned by API.")
+
+    else:
+        st.warning("Feature importance endpoint unavailable.")
+
+except:
+    st.warning("Could not load feature importance.")
