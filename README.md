@@ -68,3 +68,5 @@ Supports model versioning
  6. Deployment Link
 
  https://dashboard.render.com/web/srv-d66nr8v5r7bs739bm6ug
+   
+   https://collectiq-api.onrender.com
