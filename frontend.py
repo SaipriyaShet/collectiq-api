@@ -2,25 +2,60 @@ import streamlit as st
 import requests
 import plotly.graph_objects as go
 
-st.set_page_config(page_title="CollectIQ AI", layout="wide")
+# ==========================================
+# CONFIG
+# ==========================================
 
+st.set_page_config(page_title="CollectIQ AI", layout="wide")
 API_URL = "https://collectiq-api.onrender.com"
 
-st.title("💰 CollectIQ – AI Payment Risk Prediction")
-st.markdown("Real-Time Invoice Risk Intelligence System")
+# ==========================================
+# CUSTOM STYLING
+# ==========================================
 
-# ==============================
-# MODEL SELECTION (MUST BE ABOVE BUTTON)
-# ==============================
+st.markdown("""
+<style>
+.main-title {
+    font-size:42px;
+    font-weight:700;
+}
+.subtitle {
+    font-size:18px;
+    color:gray;
+}
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown('<div class="main-title">💰 CollectIQ</div>', unsafe_allow_html=True)
+st.markdown('<div class="subtitle">AI-Powered Invoice Risk Intelligence Platform</div>', unsafe_allow_html=True)
+
+# ==========================================
+# HEALTH CHECK
+# ==========================================
+
+try:
+    health = requests.get(f"{API_URL}/health", timeout=5).json()
+    if health.get("status") == "healthy":
+        st.success("🟢 API Status: Healthy")
+    else:
+        st.error("🔴 API Issue Detected")
+except:
+    st.error("⚠ Cannot reach backend service")
+
+st.divider()
+
+# ==========================================
+# MODEL SELECTION
+# ==========================================
 
 model_choice = st.selectbox(
     "Select Model Version",
     ["v1", "v2"]
 )
 
-# ==============================
+# ==========================================
 # INPUT SECTION
-# ==============================
+# ==========================================
 
 st.header("📥 Enter Invoice Details")
 
@@ -35,10 +70,10 @@ with col2:
     invoice_gap_days = st.number_input("Invoice Gap (Days)", min_value=0.0, value=30.0)
     industry_category = st.number_input("Industry Category (Encoded)", min_value=0.0, value=1.0)
     reliability_score = st.number_input("Reliability Score (0–1)", min_value=0.0, max_value=1.0, value=0.8)
-    
-# ==============================
-# PREDICTION BUTTON
-# ==============================
+
+# ==========================================
+# PREDICTION
+# ==========================================
 
 if st.button("🔮 Predict Risk"):
 
@@ -49,35 +84,29 @@ if st.button("🔮 Predict Risk"):
         "invoice_gap_days": invoice_gap_days,
         "industry_category": industry_category,
         "reliability_score": reliability_score,
-        
     }
 
     try:
-        response = requests.post(
-            f"{API_URL}/predict?model_version={model_choice}",
-            json=payload,
-            timeout=60
-        )
+        with st.spinner("Analyzing invoice risk..."):
+
+            response = requests.post(
+                f"{API_URL}/predict?model_version={model_choice}",
+                json=payload,
+                timeout=60
+            )
 
         if response.status_code == 200:
 
             result = response.json()
-            prob = result["late_payment_probability"]
 
-    # Convert to percentage
-            percentage = round(prob * 100, 2)
-
-            st.subheader("📊 Risk Score")
-            st.metric(
-                label="Late Payment Risk",
-                value=f"{percentage} %"
-    )
             prob = result.get("late_payment_probability", 0.0)
             action = result.get("recommended_action", "N/A")
             tone = result.get("tone", "N/A")
             model_version = result.get("model_version", "N/A")
 
-            # Risk Level Logic
+            percentage = round(prob * 100, 2)
+
+            # Risk Label
             if prob < 0.3:
                 risk_label = "🟢 Low Risk"
             elif prob < 0.7:
@@ -85,9 +114,12 @@ if st.button("🔮 Predict Risk"):
             else:
                 risk_label = "🔴 High Risk"
 
-            st.subheader("📊 Prediction Result")
+            # Metrics
+            st.subheader("📊 Risk Score")
+            st.metric("Late Payment Risk", f"{percentage}%")
+
+            st.subheader("📋 Prediction Details")
             st.success(f"Risk Level: {risk_label}")
-            st.write(f"**Probability:** {prob:.2%}")
             st.write(f"**Recommended Action:** {action}")
             st.write(f"**Tone:** {tone}")
             st.write(f"**Model Version Used:** {model_version}")
@@ -95,7 +127,7 @@ if st.button("🔮 Predict Risk"):
             # Gauge Chart
             fig = go.Figure(go.Indicator(
                 mode="gauge+number",
-                value=prob * 100,
+                value=percentage,
                 number={'suffix': "%"},
                 gauge={
                     'axis': {'range': [0, 100]},
@@ -109,7 +141,7 @@ if st.button("🔮 Predict Risk"):
                 title={'text': "Late Payment Risk"}
             ))
 
-            st.plotly_chart(fig, width='stretch')
+            st.plotly_chart(fig, width="stretch")
 
         else:
             st.error("❌ API Error")
@@ -119,9 +151,9 @@ if st.button("🔮 Predict Risk"):
         st.error("🚨 Connection Error")
         st.write(str(e))
 
-# ==============================
-# LIVE STATS SECTION
-# ==============================
+# ==========================================
+# LIVE ANALYTICS
+# ==========================================
 
 st.divider()
 st.header("📈 Live System Analytics")
@@ -143,9 +175,9 @@ try:
 except:
     st.warning("Live stats unavailable")
 
-# ==============================
-# EXPLANATION SECTION
-# ==============================
+# ==========================================
+# EXPLANATION
+# ==========================================
 
 st.divider()
 st.header("🧠 How CollectIQ Works")
@@ -158,4 +190,5 @@ st.markdown("""
 5. Dashboard monitors business risk trends.
 """)
 
-st.caption("Built with FastAPI + XGBoost + Streamlit")
+st.markdown("---")
+st.caption("CollectIQ © 2026 | AI Risk Intelligence | Built by Saipriya Shet")
