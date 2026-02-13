@@ -1,6 +1,6 @@
 📊 Dashboard Preview
 ![image](https://github.com/SaipriyaShet/collectiq-api/blob/main/Streamlit%20Dashboard.png)
-![image](
+![image](https://github.com/SaipriyaShet/collectiq-api/blob/main/Risk%20Prediction.png)
 
 
 API Documentation (Swagger UI)
